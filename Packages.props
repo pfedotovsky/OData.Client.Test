@@ -1,0 +1,17 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <PackageReference Update="Microsoft.OpenApi.OData" Version="[1.0.6]" />
+    <PackageReference Update="Swashbuckle.AspNetCore" Version="[5.5.0]" />
+    <PackageReference Update="Microsoft.EntityFrameworkCore" Version="[6.0.1]" />
+	<PackageReference Update="Microsoft.AspNetCore.OData" Version="[8.0.6]" />
+	<PackageReference Update="Microsoft.EntityFrameworkCore.SqlServer" Version="[6.0.1]" />
+    <PackageReference Update="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="[2.9.8]" />
+    <PackageReference Update="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="[3.3.2]"/>
+    <PackageReference Update="Microsoft.OData.ModelBuilder" Version="[1.0.8]" />
+    <PackageReference Update="Microsoft.SourceLink.GitHub" Version="[1.0.0]" />
+    <PackageReference Update="Microsoft.OData.Client" Version="[7.9.4]" />
+    <PackageReference Update="Microsoft.OData.Core" Version="[7.9.4]" />
+    <PackageReference Update="Microsoft.OData.Edm" Version="[7.9.4]" />
+    <PackageReference Update="Microsoft.Spatial" Version="[7.9.4]" />
+  </ItemGroup>
+</Project>

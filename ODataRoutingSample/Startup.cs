@@ -1,0 +1,137 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.OData.Edm;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.OData.Routing.Conventions;
+using Microsoft.AspNetCore.OData;
+using ODataRoutingSample.Models;
+using Microsoft.AspNetCore.Mvc.Controllers;
+using System.Reflection;
+using ODataRoutingSample.DBAccess;
+using Microsoft.EntityFrameworkCore;
+
+namespace ODataRoutingSample
+{
+    public class Startup
+    {
+        public Startup(IConfiguration configuration)
+        {
+            Configuration = configuration;
+        }
+
+        public IConfiguration Configuration { get; }
+
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services
+                   .AddDbContext<DBContext>(options => options
+                       .UseSqlServer(Configuration.GetConnectionString("BILLING"))
+                       .EnableSensitiveDataLogging());
+
+            IEdmModel model0 = EdmModelBuilder.GetEdmModel();
+
+            services.AddControllers()
+                .AddOData(opt => opt.Count().Filter().Expand().Select().OrderBy().SetMaxTop(5)
+                    .AddRouteComponents(model0)
+                    .Conventions.Add(new MyConvention())
+                );
+
+            services.AddSwaggerGen();
+        }
+
+        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        {
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+
+            // Use odata route debug, /$odata
+            app.UseODataRouteDebug();
+
+            // If you want to use /$openapi, enable the middleware.
+            //app.UseODataOpenApi();
+
+            // Add OData /$query middleware
+            app.UseODataQueryRequest();
+
+            // Add the OData Batch middleware to support OData $Batch
+            app.UseODataBatching();
+
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "OData 8.x OpenAPI");
+            });
+
+            app.UseRouting();
+
+            // Test middleware
+            app.Use(next => context =>
+            {
+                var endpoint = context.GetEndpoint();
+                if (endpoint == null)
+                {
+                    return next(context);
+                }
+
+                return next(context);
+            });
+
+            //app.UseAuthorization();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
+        }
+    }
+
+    public class RemoveMetadataControllerFeatureProvider : ControllerFeatureProvider
+    {
+        protected override bool IsController(TypeInfo typeInfo)
+        {
+            if (typeInfo.FullName == "Microsoft.AspNetCore.OData.Routing.Controllers.MetadataController")
+            {
+                return false;
+            }
+
+            return base.IsController(typeInfo);
+        }
+    }
+
+    /// <summary>
+    /// My simple convention
+    /// </summary>
+    public class MyConvention : IODataControllerActionConvention
+    {
+        /// <summary>
+        /// Order value.
+        /// </summary>
+        public int Order => -100;
+
+        /// <summary>
+        /// Apply to action,.
+        /// </summary>
+        /// <param name="context">Http context.</param>
+        /// <returns>true/false</returns>
+        public bool AppliesToAction(ODataControllerActionContext context)
+        {
+            return true; // apply to all controller
+        }
+
+        /// <summary>
+        /// Apply to controller
+        /// </summary>
+        /// <param name="context">Http context.</param>
+        /// <returns>true/false</returns>
+        public bool AppliesToController(ODataControllerActionContext context)
+        {
+            return false; // continue for all others
+        }
+    }
+}
